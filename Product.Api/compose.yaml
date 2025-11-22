@@ -1,0 +1,41 @@
+﻿services:
+  product.api:
+    image: product.api
+    container_name: product-management
+    hostname: product-management
+    build:
+      context: .
+      dockerfile: Product.Api/Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnectionString: "Host=postgres;Port=5432;Database=productdb;Username=postgres;Password=postgres"
+    ports:
+      - "8080:8080"   # <- match container port
+    depends_on:
+      - postgres
+    networks:
+      default:
+        aliases:
+          - product-management
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: productdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: app-network
+
+volumes:
+  postgres-data:
